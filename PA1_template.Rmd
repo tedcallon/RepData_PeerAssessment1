@@ -1,6 +1,8 @@
 ---
 title: "Course Project 1"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -22,7 +24,8 @@ activity$date <- as.Date(activity$date)
 total <- sum(activity$steps, na.rm = T) 
 
 #plot histogram of daily total
-temp <- group_by(activity, date)
+hold <- na.omit(activity)
+temp <- group_by(hold, date)
 dayTot <- summarize(temp, Total = sum(steps, na.rm = T))
 ggplot(dayTot, aes(Total)) + geom_histogram() + ggtitle("Histogram of Total Steps per Day")
 
@@ -36,7 +39,7 @@ The mean total number of steps taken per day is `r meanSteps` steps and the medi
 
 ## Question 2: Average Daily Activity Pattern
 ```{r q2}
-temp <- group_by(activity, interval)
+temp <- group_by(hold, interval)
 dailyAct <- summarize(temp, Average = mean(steps, na.rm = T))
 ggplot(dailyAct, aes(y = Average, x = interval)) + geom_line() + 
     xlab("5-Min Interval") + ggtitle("Average Daily Activity Pattern") +
@@ -80,7 +83,7 @@ The number of rows with missing values is `r numRows`.
 
 The new total number of steps is `r newTotal` which is `r dif` more steps than the old total number of steps, `r total`. 
 
-Also, the new median number of steps per day is `r newMedSteps` and the new mean is `r newMeanSteps` which are both higher than their previous versions. 
+Also, the new median number of steps per day is `r newMedSteps` and the new mean is `r newMeanSteps`. The mean is the same while the median is slightly higher.
 
 
 ```{r q4}

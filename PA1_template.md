@@ -44,7 +44,8 @@ activity$date <- as.Date(activity$date)
 total <- sum(activity$steps, na.rm = T) 
 
 #plot histogram of daily total
-temp <- group_by(activity, date)
+hold <- na.omit(activity)
+temp <- group_by(hold, date)
 dayTot <- summarize(temp, Total = sum(steps, na.rm = T))
 ggplot(dayTot, aes(Total)) + geom_histogram() + ggtitle("Histogram of Total Steps per Day")
 ```
@@ -62,12 +63,12 @@ medSteps <- median(dayTot$Total, na.rm = T)
 ```
 The overall total number of steps is 570608.
 
-The mean total number of steps taken per day is 9354.2295082 steps and the median total number of steps taken per day is 10395 steps.
+The mean total number of steps taken per day is 1.0766189\times 10^{4} steps and the median total number of steps taken per day is 10765 steps.
 
 ## Question 2: Average Daily Activity Pattern
 
 ```r
-temp <- group_by(activity, interval)
+temp <- group_by(hold, interval)
 dailyAct <- summarize(temp, Average = mean(steps, na.rm = T))
 ggplot(dailyAct, aes(y = Average, x = interval)) + geom_line() + 
     xlab("5-Min Interval") + ggtitle("Average Daily Activity Pattern") +
@@ -124,7 +125,7 @@ The number of rows with missing values is 2304.
 
 The new total number of steps is 6.5673751\times 10^{5} which is 8.6129509\times 10^{4} more steps than the old total number of steps, 570608. 
 
-Also, the new median number of steps per day is 1.0766189\times 10^{4} and the new mean is 1.0766189\times 10^{4} which are both higher than their previous versions. 
+Also, the new median number of steps per day is 1.0766189\times 10^{4} and the new mean is 1.0766189\times 10^{4}. The mean is the same while the median is slightly higher.
 
 
 
