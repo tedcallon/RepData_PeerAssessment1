@@ -1,25 +1,102 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Course Project 1"
+output: html_document
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
-## Loading and preprocessing the data
-
-
-
-## What is mean total number of steps taken per day?
-
-
-
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
+## Loading and Preprocessing Data
+```{r data}
+library(dplyr)
+library(ggplot2)
+activity <- read.csv("activity.csv")
+activity$date <- as.Date(activity$date)
+```
 
 
+## Question 1: Mean Steps per Day
+```{r q1}
+#calculate total
+total <- sum(activity$steps, na.rm = T) 
 
-## Are there differences in activity patterns between weekdays and weekends?
+#plot histogram of daily total
+temp <- group_by(activity, date)
+dayTot <- summarize(temp, Total = sum(steps, na.rm = T))
+ggplot(dayTot, aes(Total)) + geom_histogram() + ggtitle("Histogram of Total Steps per Day")
+
+#calculate mean daily total and median daily total
+meanSteps <- mean(dayTot$Total, na.rm = T)
+medSteps <- median(dayTot$Total, na.rm = T)
+```
+The overall total number of steps is `r total`.
+
+The mean total number of steps taken per day is `r meanSteps` steps and the median total number of steps taken per day is `r medSteps` steps.
+
+## Question 2: Average Daily Activity Pattern
+```{r q2}
+temp <- group_by(activity, interval)
+dailyAct <- summarize(temp, Average = mean(steps, na.rm = T))
+ggplot(dailyAct, aes(y = Average, x = interval)) + geom_line() + 
+    xlab("5-Min Interval") + ggtitle("Average Daily Activity Pattern") +
+    ylab("Average Number of Steps")
+
+maxInt <- as.integer(dailyAct[which.max(dailyAct$Average),"interval"])
+```
+The interval `r maxInt` contains the maximum number of steps on average across all the days in the dataset.
+
+## Question 3: Imputing Missing Values
+```{r q3}
+nas <- filter(activity, is.na(steps))
+numRows <- nrow(nas)
+
+##strategy will be to use the average of a given interval to fill in the missing value
+temp <- group_by(activity, interval)
+dailyAct <- summarize(temp, Average = mean(steps, na.rm = T))
+
+#fill in missing values
+for (i in unique(nas$interval)) nas[nas$interval == i,"steps"] = dailyAct[dailyAct$interval == i, "Average"]
+
+#remove missing values from the base dataset, and then re-add the rows with the new values
+activity <- na.omit(activity)
+activity <- rbind(activity, nas)
+
+#calculate total steps
+newTotal <- sum(activity$steps, na.rm = T) 
+
+#plot histogram of daily total
+temp <- group_by(activity, date)
+dayTot <- summarize(temp, Total = sum(steps, na.rm = T))
+ggplot(dayTot, aes(Total)) + geom_histogram() + ggtitle("Histogram of Total Steps per Day")
+
+#calculate mean daily total and median daily total
+newMeanSteps <- mean(dayTot$Total, na.rm = T)
+newMedSteps <- median(dayTot$Total, na.rm = T)
+
+dif = newTotal - total
+```
+The number of rows with missing values is `r numRows`.
+
+The new total number of steps is `r newTotal` which is `r dif` more steps than the old total number of steps, `r total`. 
+
+Also, the new median number of steps per day is `r newMedSteps` and the new mean is `r newMeanSteps` which are both higher than their previous versions. 
+
+
+```{r q4}
+## Create a factor variable that splits dates into weekend and weekday
+activity$dayType <- "Weekend"
+check <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+
+activity[weekdays(activity$date) %in% check,"dayType"] <- "Weekday"
+
+activity$dayType <- as.factor(activity$dayType)
+
+#plot Average Daily Activity Pattern differentiated by weekend vs. weekday
+temp <- group_by(activity, interval, dayType)
+weekCheck <- summarize(temp, Average = mean(steps, na.rm = T))
+ggplot(weekCheck, aes(y = Average, x = interval)) + geom_line() + 
+    xlab("5-Min Interval") + 
+    ggtitle("Average Daily Activity Pattern for Weekends vs. Weekdays") +
+    facet_grid(dayType~.) + ylab("Average Number of Steps")
+```
